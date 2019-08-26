@@ -264,6 +264,8 @@ std::vector<std::string> getMessage(SerialConnection *connection)
           msg += c;
         }
       }
+      ros::Duration(0.001).sleep();
+      
     }
     if (msg.find("speed") == std::string::npos && 
         msg.find("FFT") == std::string::npos && 
@@ -286,6 +288,7 @@ std::vector<std::string> getMessage(SerialConnection *connection)
 
 int main(int argc, char** argv)
 {
+  std::cout << "Test cout" << std::endl;
   //the name of this node: radar_publisher
   ros::init(argc, argv, "radar_publisher"); 
   ros::NodeHandle nh;//("~");
@@ -303,7 +306,7 @@ int main(int argc, char** argv)
   ros::ServiceServer radar_srv = nh.advertiseService("send_api_command", api);  
 
   //ROS loop rate, currently sent to 60Hz.
-  ros::Rate loop_rate(1000); 
+  ros::Rate loop_rate(1000); //TODO 1000
   //Open USB port serial connection for two way communication
   SerialConnection connection = SerialConnection(serialPort.c_str(), B19200, 0);  
   con = &connection;
@@ -311,30 +314,26 @@ int main(int argc, char** argv)
   int is_initialized = 0;
   while (ros::ok())
   {
+	std::cout << "ROS OK" << std::endl;
     if (connection.isConnected())
     {
+		std::cout << "Connected" << std::endl;
       if (! is_initialized)
       {
+		std::cout << "Not initialized" << std::endl;
         //assuming radar is being started with no fft output.
         //Then begin reading. Then set radar device to output Json format  data
         //string of format {"speed":#.##,"direction":"inbound(or outbound)","time":###,"tick":###}.   though actually, tick got appended to time so time is now in ms
-        ROS_INFO("setting radar settings");
+        //ROS_INFO("setting radar settings");
         connection.clearBuffer();
         connection.begin();
-        connection.write("OJ");  // force JSON mode even for speed
-
-        // Note: In 1.1 and earlier, seconds came in "time" and milliseconds in "tick"
-        // In JSON, that was always present, and never present in 'non JSON'
-        // The new command OT will do nothing in pre 1.2 and will turn on time
-        // in either non-JSON or JSON nowadays.  Now, Time is in sec.millis
-        // The latest JSON processing code will add tick to time (if found)
-        // so that aligns both.
-        connection.write("OT"); // In 1.2, this turns on "time" in sec.millis
-
-        connection.write("Of"); // no FFT
-        connection.write("Or"); // no raw
-        connection.write("F2"); // 2 decimals
-        connection.clearBuffer();
+        //connection.write("OJ");  // force JSON mode even for speed
+        //connection.write("OT"); // In 1.2, this turns on "time" in sec.millis
+        //connection.write("Of"); // no FFT
+        //connection.write("Or"); // no raw
+        //connection.write("F2"); // 2 decimals
+        //connection.write("M>300\r\n"); // 2 decimals
+        //connection.clearBuffer();
       }
 
       radar_omnipresense::radar_data info; 
